@@ -44,13 +44,16 @@
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>Assembly-CSharp.dll</HintPath>
+      <HintPath>D:\REPOSITORIO\_LocalDev\KSPRefs\Assembly-CSharp.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>Assembly-CSharp-firstpass.dll</HintPath>
+      <HintPath>D:\REPOSITORIO\_LocalDev\KSPRefs\Assembly-CSharp-firstpass.dll</HintPath>
       <Private>False</Private>
+    </Reference>
+    <Reference Include="KSPAssets">
+      <HintPath>D:\REPOSITORIO\_LocalDev\KSPRefs\KSPAssets.dll</HintPath>
     </Reference>
     <Reference Include="System">
       <SpecificVersion>False</SpecificVersion>
@@ -59,42 +62,12 @@
     </Reference>
     <Reference Include="UnityEngine">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>UnityEngine.dll</HintPath>
+      <HintPath>D:\REPOSITORIO\_LocalDev\KSPRefs\UnityEngine.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.UI">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>UnityEngine.UI.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.CoreModule">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>UnityEngine.CoreModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.IMGUIModule">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>UnityEngine.IMGUIModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.VehiclesModule">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>UnityEngine.VehiclesModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.PhysicsModule">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>UnityEngine.PhysicsModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.AnimationModule">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>UnityEngine.AnimationModule.dll</HintPath>
-      <Private>False</Private>
-    </Reference>
-    <Reference Include="UnityEngine.TextRenderingModule">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>UnityEngine.TextRenderingModule.dll</HintPath>
+      <HintPath>D:\REPOSITORIO\_LocalDev\KSPRefs\UnityEngine.UI.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>
@@ -177,6 +150,7 @@
     <Compile Include="MechJebModuleLandingAutopilot.cs" />
     <Compile Include="MechJebModuleLandingGuidance.cs" />
     <Compile Include="MechJebModuleLandingPredictions.cs" />
+    <Compile Include="MechJebModuleLogicalStageTracking.cs" />
     <Compile Include="MechJebModuleManeuverPlanner.cs" />
     <Compile Include="MechJebModuleMenu.cs" />
     <Compile Include="MechJebModuleNodeEditor.cs" />
@@ -300,6 +274,9 @@
   <PropertyGroup>
     <PostBuildEvent Condition=" '$(OS)' == 'Windows_NT' ">call "$(ProjectDir)copy_build.bat" "$(TargetPath)" "$(TargetDir)" "$(TargetName)"</PostBuildEvent>
     <PostBuildEvent Condition=" '$(OS)' != 'Windows_NT' ">sh -c "TARGET_PATH='$(TargetPath)' TARGET_DIR='$(TargetDir)' TARGET_NAME='$(TargetName)' sh '$(ProjectDir)/copy_build.sh'"</PostBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PostBuildEvent />
   </PropertyGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
