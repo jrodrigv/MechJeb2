@@ -37,7 +37,7 @@ namespace MuMech
             {
                 if (vessel.LandedOrSplashed)
                 {
-                    core.landing.StopLanding();
+                    core.landing.StopLanding(final:true);
                     return null;
                 }
 

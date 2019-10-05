@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -56,6 +55,14 @@ namespace MuMech
             assetBundle.Unload(false);
             MechJebCore.print("Loaded Shaders Bundles");
         }
+    }
+
+
+    public struct LandingError
+    {
+        public double LatitudeError { get; set; }
+        public double LongitudeError { get; set; }
+
     }
 }
 

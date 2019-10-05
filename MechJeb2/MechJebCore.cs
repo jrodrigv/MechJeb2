@@ -84,6 +84,20 @@ namespace MuMech
         [KSPField(isPersistant = false)]
         public bool eduMode = false;
 
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Landing Latitude:"), UI_Label(scene = UI_Scene.All)]
+        public float LandingLatitude = 0f;
+
+     
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Landing Longitude:"), UI_Label(scene = UI_Scene.All)]
+        public float LandingLongitude = 0f;
+
+       
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Latitude Error:"), UI_Label(scene = UI_Scene.All)]
+        public float LatitudeError = 0;
+
+        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Longitude Error:"), UI_Label(scene = UI_Scene.All)]
+        public float LongitudeError = 0;
+
         public bool rssMode { get { return settings.rssMode; } }
 
         public bool ShowGui
@@ -146,10 +160,16 @@ namespace MuMech
             LandSomewhere();
         }
 
-        [KSPAction("Land at KSC")]
+        [KSPAction("Land at target")]
         public void OnLandTargetAction(KSPActionParam param)
         {
             LandTarget();
+        }
+
+        [KSPAction("Set target Automated Landing")]
+        public void OnSetTargetVesselNameAction(KSPActionParam param)
+        {
+            SetTargetAutomatedLanding();
         }
 
 
@@ -161,7 +181,27 @@ namespace MuMech
             {
                 MechJebModuleLandingGuidance moduleLandingGuidance = GetComputerModule<MechJebModuleLandingGuidance>();
 
-                moduleLandingGuidance?.SetAndLandTargetKSC();
+                moduleLandingGuidance?.LandTarget();
+            }
+
+        }
+        private void SetTargetAutomatedLanding()
+        {
+            MechJebCore masterMechJeb = vessel.GetMasterMechJeb();
+
+            if (masterMechJeb != null)
+            {
+                MechJebModuleLandingGuidance moduleLandingGuidance = GetComputerModule<MechJebModuleLandingGuidance>();
+
+                if (LandingLatitude != 0)
+                {
+                    moduleLandingGuidance?.SetTargetAutomatedLanding(LandingLatitude, LandingLongitude);
+                }
+                else
+                {
+                    moduleLandingGuidance?.SetTargetAutomatedLanding(LandingLatitude, LandingLongitude);
+                }
+              
             }
 
         }
@@ -524,6 +564,68 @@ namespace MuMech
                 vessel.OnFlyByWire += OnFlyByWire;
                 controlledVessel = vessel;
             }
+
+            Events["HideUI"].active = false;
+            Events["ShowUI"].active = true;
+
+            LandingCoordinatesWindow.OnActionGroupEditorOpened.Add(OnActionGroupEditorOpened);
+            LandingCoordinatesWindow.OnActionGroupEditorClosed.Add(OnActionGroupEditorClosed);
+
+            if (LandingLatitude!=0 || LandingLongitude!=0)
+            {
+                Fields["LandingLatitude"].guiActive = true;
+                Fields["LandingLongitude"].guiActive = true;
+                Fields["LatitudeError"].guiActive = true;
+                Fields["LongitudeError"].guiActive = true;
+
+                Fields["LandingLatitude"].guiActiveEditor = true;
+                Fields["LandingLongitude"].guiActiveEditor = true;
+                Fields["LatitudeError"].guiActiveEditor = true;
+                Fields["LongitudeError"].guiActiveEditor = true;
+
+                
+            }
+            else
+            {
+                Fields["LandingLatitude"].guiActive = false;
+                Fields["LandingLongitude"].guiActive = false;
+                Fields["LatitudeError"].guiActive = false;
+                Fields["LongitudeError"].guiActive = false;
+
+                Fields["LandingLatitude"].guiActiveEditor = false;
+                Fields["LandingLongitude"].guiActiveEditor = false;
+                Fields["LatitudeError"].guiActiveEditor = false;
+                Fields["LongitudeError"].guiActiveEditor = false;
+            }
+        }
+        [KSPEvent(guiActiveEditor = true, guiName = "Hide Automated Landing", active = false)]
+        public void HideUI()
+        {
+            LandingCoordinatesWindow.HideGUI();
+            UpdateMenus(false);
+        }
+
+        [KSPEvent(guiActiveEditor = true, guiName = "Set Automated Landing", active = false)]
+        public void ShowUI()
+        {
+            LandingCoordinatesWindow.ShowGUI(this);
+            UpdateMenus(true);
+        }
+        private void UpdateMenus(bool visible)
+        {
+            Events["HideUI"].active = visible;
+            Events["ShowUI"].active = !visible;
+        }
+        private void OnActionGroupEditorClosed()
+        {
+            Events["HideUI"].active = false;
+            Events["ShowUI"].active = false;
+        }
+
+        private void OnActionGroupEditorOpened()
+        {
+            Events["HideUI"].active = false;
+            Events["ShowUI"].active = true;
         }
 
         public override void OnActive()
@@ -1153,6 +1255,31 @@ namespace MuMech
                 for (int i = 0; i < postDrawQueue.Count; i++)
                 {
                     postDrawQueue[i]();
+                }
+
+                if (LandingLatitude != 0 || LandingLongitude !=0)
+                {
+                    Fields["LandingLatitude"].guiActive = true;
+                    Fields["LandingLongitude"].guiActive = true;
+                    Fields["LatitudeError"].guiActive = true;
+                    Fields["LongitudeError"].guiActive = true;
+
+                    Fields["LandingLatitude"].guiActiveEditor = true;
+                    Fields["LandingLongitude"].guiActiveEditor = true;
+                    Fields["LatitudeError"].guiActiveEditor = true;
+                    Fields["LongitudeError"].guiActiveEditor = true;
+                }
+                else
+                {
+                    Fields["LandingLatitude"].guiActive = false;
+                    Fields["LandingLongitude"].guiActive = false;
+                    Fields["LatitudeError"].guiActive = false;
+                    Fields["LongitudeError"].guiActive = false;
+
+                    Fields["LandingLatitude"].guiActiveEditor = false;
+                    Fields["LandingLongitude"].guiActiveEditor = false;
+                    Fields["LatitudeError"].guiActiveEditor = false;
+                    Fields["LongitudeError"].guiActiveEditor = false;
                 }
             }
             Profiler.EndSample();

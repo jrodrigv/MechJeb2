@@ -1,4 +1,6 @@
 using System;
+using System.Runtime.CompilerServices;
+using KSP.UI.Screens;
 using ModuleWheels;
 using UnityEngine;
 
@@ -32,6 +34,7 @@ namespace MuMech
         MechJebModuleLandingPredictions predictor;
         public ReentrySimulation.Result prediction;
         ReentrySimulation.Result errorPrediction;
+
 
         public bool PredictionReady //We shouldn't do any autopilot stuff until this is true
         {
@@ -108,8 +111,10 @@ namespace MuMech
             get { return prediction.WorldEndPosition(); }
         }
 
+
         public IDescentSpeedPolicy descentSpeedPolicy;
         public double vesselAverageDrag;
+        public MechJebModuleLandingGuidance.LandingSite LandingTarget;
 
         public MechJebModuleLandingAutopilot(MechJebCore core)
             : base(core)
@@ -119,6 +124,7 @@ namespace MuMech
         public override void OnStart(PartModule.StartState state)
         {
             predictor = core.GetComputerModule<MechJebModuleLandingPredictions>();
+
         }
 
         //public interface:
@@ -144,6 +150,7 @@ namespace MuMech
                 setStep(new Landing.DeorbitBurn(core));
         }
 
+
         public void LandUntargeted(object controller)
         {
             landAtTarget = false;
@@ -158,14 +165,36 @@ namespace MuMech
             setStep(new Landing.UntargetedDeorbit(core));
         }
 
-        public void StopLanding()
+        public void StopLanding(bool final = false)
         {
+            if (final)
+            {
+                CalculateFinalLandingError();
+            }
+            
             this.users.Clear();
             core.thrust.ThrustOff();
             core.thrust.users.Remove(this);
             if (core.landing.rcsAdjustment)
                 core.rcs.enabled = false;
             setStep(null);
+        }
+
+        private void CalculateFinalLandingError()
+        {
+            if (vessel == null) return;
+            if (core.LandingLatitude == 0 && core.LandingLongitude ==0) return;
+
+            double expectedLatitude = core.LandingLatitude;
+            double expectedLongitude = core.LandingLongitude;
+
+            MechjebAutomatedLanding.AddNewError(core.vessel.GetName(), expectedLatitude - vessel.latitude, expectedLongitude - vessel.longitude);
+
+            var newLandingError = MechjebAutomatedLanding.GetError(core.vessel.GetName());
+
+            this.core.LatitudeError = (float) newLandingError.LatitudeError;
+            this.core.LongitudeError = (float) newLandingError.LongitudeError;
+
         }
 
         public override void Drive(FlightCtrlState s)
@@ -223,6 +252,7 @@ namespace MuMech
         {
             core.attitude.users.Add(this);
             core.thrust.users.Add(this);
+
         }
 
         public override void OnModuleDisabled()
@@ -584,11 +614,6 @@ namespace MuMech
             }
         }
 
-        public void SetTargetKSC(MechJebCore controller)
-        {
-            users.Add(controller);
-            core.target.SetPositionTarget(mainBody, MechJebModuleLandingGuidance.landingSites[0].latitude, MechJebModuleLandingGuidance.landingSites[0].longitude);
-        }
     }
 
 
