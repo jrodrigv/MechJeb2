@@ -188,13 +188,14 @@ namespace MuMech
             double expectedLatitude = core.LandingLatitude;
             double expectedLongitude = core.LandingLongitude;
 
-            MechjebAutomatedLanding.AddNewError(core.vessel.GetName(), expectedLatitude - vessel.latitude, expectedLongitude - vessel.longitude);
+            Vector3d expectedLandingPos = FlightGlobals.currentMainBody.GetWorldSurfacePosition(expectedLatitude, expectedLongitude, 0);
 
-            var newLandingError = MechjebAutomatedLanding.GetError(core.vessel.GetName());
 
-            this.core.LatitudeError = (float) newLandingError.LatitudeError;
-            this.core.LongitudeError = (float) newLandingError.LongitudeError;
+            Vector3d actualLandingPos = core.vessel.GetWorldPos3D();
 
+            Vector3d errorVector = expectedLandingPos - actualLandingPos;
+
+            MechjebAutomatedLanding.AddNewError(core.vessel.GetName(), errorVector);
         }
 
         public override void Drive(FlightCtrlState s)

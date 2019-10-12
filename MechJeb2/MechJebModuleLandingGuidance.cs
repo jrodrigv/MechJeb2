@@ -167,7 +167,18 @@ namespace MuMech
         public void SetTargetAutomatedLanding(float latitude, float longitude)
         {
             var landingError = MechjebAutomatedLanding.GetError(core.vessel.GetName());
-            core.target.SetPositionTarget(mainBody, latitude + landingError.LatitudeError, longitude + landingError.LongitudeError);
+
+            var errorVector = new Vector3d(landingError.ErrorX, landingError.ErrorY, landingError.ErrorZ);
+
+            var worldPos = FlightGlobals.currentMainBody.GetWorldSurfacePosition(latitude, longitude, 0);
+
+            var correctedWorldPos = worldPos + errorVector;
+
+            FlightGlobals.currentMainBody.GetLatLonAlt(correctedWorldPos, out var correctedLatitude, out var correctedLongitude, out _);
+
+            Debug.Log("SetTargetAutomatedLanding: landing at {correctedLatitude} , {correctedLongitude} ");
+
+            core.target.SetPositionTarget(mainBody, correctedLatitude , correctedLongitude);
         }
 
         public void LandSomewhere()

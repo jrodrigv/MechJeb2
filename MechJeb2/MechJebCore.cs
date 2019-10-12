@@ -98,12 +98,6 @@ namespace MuMech
         [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Landing Longitude:"), UI_Label(scene = UI_Scene.All)]
         public float LandingLongitude = 0f;
 
-       
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Latitude Error:"), UI_Label(scene = UI_Scene.All)]
-        public float LatitudeError = 0;
-
-        [KSPField(isPersistant = true, guiActive = false, guiActiveEditor = false, guiName = "Longitude Error:"), UI_Label(scene = UI_Scene.All)]
-        public float LongitudeError = 0;
 
         public bool rssMode { get { return settings.rssMode; } }
 
@@ -200,15 +194,8 @@ namespace MuMech
             {
                 MechJebModuleLandingGuidance moduleLandingGuidance = GetComputerModule<MechJebModuleLandingGuidance>();
 
-                if (LandingLatitude != 0)
-                {
-                    moduleLandingGuidance?.SetTargetAutomatedLanding(LandingLatitude, LandingLongitude);
-                }
-                else
-                {
-                    moduleLandingGuidance?.SetTargetAutomatedLanding(LandingLatitude, LandingLongitude);
-                }
-              
+                moduleLandingGuidance?.SetTargetAutomatedLanding(LandingLatitude, LandingLongitude);
+
             }
 
         }
@@ -582,27 +569,18 @@ namespace MuMech
             {
                 Fields["LandingLatitude"].guiActive = true;
                 Fields["LandingLongitude"].guiActive = true;
-                Fields["LatitudeError"].guiActive = true;
-                Fields["LongitudeError"].guiActive = true;
-
+                
                 Fields["LandingLatitude"].guiActiveEditor = true;
                 Fields["LandingLongitude"].guiActiveEditor = true;
-                Fields["LatitudeError"].guiActiveEditor = true;
-                Fields["LongitudeError"].guiActiveEditor = true;
 
-                
             }
             else
             {
                 Fields["LandingLatitude"].guiActive = false;
                 Fields["LandingLongitude"].guiActive = false;
-                Fields["LatitudeError"].guiActive = false;
-                Fields["LongitudeError"].guiActive = false;
 
                 Fields["LandingLatitude"].guiActiveEditor = false;
                 Fields["LandingLongitude"].guiActiveEditor = false;
-                Fields["LatitudeError"].guiActiveEditor = false;
-                Fields["LongitudeError"].guiActiveEditor = false;
             }
         }
         [KSPEvent(guiActiveEditor = true, guiName = "Hide Automated Landing", active = false)]
@@ -1271,25 +1249,17 @@ namespace MuMech
                 {
                     Fields["LandingLatitude"].guiActive = true;
                     Fields["LandingLongitude"].guiActive = true;
-                    Fields["LatitudeError"].guiActive = true;
-                    Fields["LongitudeError"].guiActive = true;
 
                     Fields["LandingLatitude"].guiActiveEditor = true;
                     Fields["LandingLongitude"].guiActiveEditor = true;
-                    Fields["LatitudeError"].guiActiveEditor = true;
-                    Fields["LongitudeError"].guiActiveEditor = true;
                 }
                 else
                 {
                     Fields["LandingLatitude"].guiActive = false;
                     Fields["LandingLongitude"].guiActive = false;
-                    Fields["LatitudeError"].guiActive = false;
-                    Fields["LongitudeError"].guiActive = false;
 
                     Fields["LandingLatitude"].guiActiveEditor = false;
                     Fields["LandingLongitude"].guiActiveEditor = false;
-                    Fields["LatitudeError"].guiActiveEditor = false;
-                    Fields["LongitudeError"].guiActiveEditor = false;
                 }
             }
             Profiler.EndSample();

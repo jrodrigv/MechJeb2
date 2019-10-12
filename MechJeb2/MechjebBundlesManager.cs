@@ -56,14 +56,6 @@ namespace MuMech
             MechJebCore.print("Loaded Shaders Bundles");
         }
     }
-
-
-    public struct LandingError
-    {
-        public double LatitudeError { get; set; }
-        public double LongitudeError { get; set; }
-
-    }
 }
 
 

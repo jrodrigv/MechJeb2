@@ -28,7 +28,7 @@ namespace MuMech
             }
         }
 
-        public static void AddNewError(string vesselName, double errorLatitude, double errorLongitude)
+        public static void AddNewError(string vesselName, Vector3d errorVector)
         {
             var root = ConfigNode.Load(settingsConfigURL);
 
@@ -41,20 +41,27 @@ namespace MuMech
                 var newVesselNode = vesselData.AddNode("Vessel");
 
                 newVesselNode.AddValue("name", vesselName);
-                newVesselNode.AddValue("errorLatitude", errorLatitude);
-                newVesselNode.AddValue("errorLongitude",errorLongitude);
+                newVesselNode.AddValue("errorX", errorVector.x);
+                newVesselNode.AddValue("errorY",errorVector.y);
+                newVesselNode.AddValue("errorZ", errorVector.z);
+
 
             }
             else
             {
                 ConfigNode vesselNode = vesselData.GetNodes().Where(x => x.GetValue("name") == vesselName).ToArray()[0];
-                double previousErrorLatitude = Convert.ToDouble(vesselNode.GetValue("errorLatitude"));
+                double previousErrorX = Convert.ToDouble(vesselNode.GetValue("errorX"));
 
-                vesselNode.SetValue("errorLatitude", previousErrorLatitude + errorLatitude);
+                vesselNode.SetValue("errorX", previousErrorX + errorVector.x);
 
-                double previousErrorLongitude = Convert.ToDouble(vesselNode.GetValue("errorLongitude"));
+                double previousErrorY= Convert.ToDouble(vesselNode.GetValue("errorY"));
 
-                vesselNode.SetValue("errorLongitude", previousErrorLongitude + errorLongitude);
+                vesselNode.SetValue("errorY", previousErrorY +  errorVector.y);
+
+                double previousErrorZ = Convert.ToDouble(vesselNode.GetValue("errorZ"));
+
+                vesselNode.SetValue("errorZ", previousErrorZ + errorVector.z);
+
             }
 
             root.Save(settingsConfigURL);
@@ -65,25 +72,37 @@ namespace MuMech
             var root = ConfigNode.Load(settingsConfigURL);
 
             var vesselData = root.GetNode("VesselsData");
-            ConfigNode vesselNode = vesselData.GetNodes().Where(x => x.GetValue("name") == vesselName).ToArray()[0];
-
-            if (vesselNode == null)
+            try
             {
-                Debug.Log($"GetError {vesselName} returns 0");
-                return new LandingError(){LatitudeError = 0, LongitudeError = 0};
+                ConfigNode vesselNode = vesselData.GetNodes().Where(x => x.GetValue("name") == vesselName).ToArray()[0];
+
+                if (vesselNode == null)
+                {
+                    Debug.Log($"GetError {vesselName} returns 0");
+                    return new LandingError() { ErrorX = 0, ErrorY = 0, ErrorZ = 0 };
+                }
+
+                double errorX = double.Parse(vesselNode.GetValue("errorX"));
+
+                double errorY = double.Parse(vesselNode.GetValue("errorY"));
+
+                double errorz = double.Parse(vesselNode.GetValue("errorZ"));
+
+
+                var newError = new LandingError
+                {
+                    ErrorX = errorX,
+                    ErrorY = errorY,
+                    ErrorZ = errorz
+                };
+
+                return newError;
             }
-
-            double errorLatitude = double.Parse(vesselNode.GetValue("errorLatitude"));
-
-            double errorLongitude = double.Parse(vesselNode.GetValue("errorLongitude"));
-            Debug.Log($"GetError {vesselName} returns not zero. ErrorLatitude {errorLatitude} ErrorLongitude {errorLongitude}");
-
-            var newError = new LandingError
+            catch (Exception)
             {
-                LatitudeError = errorLatitude, LongitudeError = errorLongitude
-            };
 
-            return newError;
+                return new LandingError() { ErrorX = 0, ErrorY = 0, ErrorZ = 0 };
+            }
 
         }
 
