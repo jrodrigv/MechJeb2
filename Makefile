@@ -58,7 +58,7 @@ build/%.dll: ${MECHJEBFILES}
 	mkdir -p build
 	${RESGEN2} -usesourcepath MechJeb2/Properties/Resources.resx build/Resources.resources
 	${MCS} -t:library -lib:"${MANAGED}" \
-		-r:Assembly-CSharp,Assembly-CSharp-firstpass,UnityEngine,UnityEngine.UI,,UnityEngine.CoreModule,UnityEngine.IMGUIModule,UnityEngine.VehiclesModule,UnityEngine.PhysicsModule,UnityEngine.AnimationModule,UnityEngine.TextRenderingModule \
+		-r:Assembly-CSharp,Assembly-CSharp-firstpass,UnityEngine,UnityEngine.UI,,UnityEngine.CoreModule,UnityEngine.IMGUIModule,UnityEngine.VehiclesModule,UnityEngine.PhysicsModule,UnityEngine.AnimationModule,UnityEngine.TextRenderingModule,UnityEngine.InputLegacyModule,UnityEngine.AssetBundleModule \
 		-out:$@ \
 		${MECHJEBFILES} \
 		-resource:build/Resources.resources,MuMech.Properties.Resources.resources
@@ -67,6 +67,8 @@ package: build ${MECHJEBFILES}
 	mkdir -p package/MechJeb2/Plugins
 	cp -r Parts package/MechJeb2/
 	cp -r Icons package/MechJeb2/
+	cp -r Bundles package/MechJeb2/
+	cp -r Localization package/MechJeb2/
 	cp build/MechJeb2.dll package/MechJeb2/Plugins/
 	cp LICENSE.md README.md package/MechJeb2/
 
@@ -89,6 +91,8 @@ install: build
 	mkdir -p "${KSPDIR}"/GameData/MechJeb2/Plugins
 	cp -r Parts "${KSPDIR}"/GameData/MechJeb2/
 	cp -r Icons "${KSPDIR}"/GameData/MechJeb2/
+	cp -r Bundles "${KSPDIR}"/GameData/MechJeb2/
+	cp -r Localization "${KSPDIR}"/GameData/MechJeb2/
 	cp build/MechJeb2.dll "${KSPDIR}"/GameData/MechJeb2/Plugins/
 
 uninstall: info
