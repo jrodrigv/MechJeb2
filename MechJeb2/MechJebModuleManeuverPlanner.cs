@@ -101,7 +101,9 @@ namespace MuMech
                     if (!createNode)
                         maneuverNodes.Last().RemoveSelf();
                     for (var i = 0; i < nodeList.Count; i++)
+                    {
                         vessel.PlaceManeuverNode(o, nodeList[i].dV, nodeList[i].UT);
+                    }
                 }
 
                 if (executingNode && core.node != null)
@@ -209,6 +211,11 @@ namespace MuMech
         public override string GetName()
         {
             return Localizer.Format("#MechJeb_Maneuver_Planner_title");//Maneuver Planner
+        }
+
+        public override string IconName()
+        {
+            return "Maneuver Planner";
         }
 
         public override bool IsSpaceCenterUpgradeUnlocked()
