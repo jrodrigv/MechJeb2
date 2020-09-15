@@ -44,6 +44,8 @@ namespace MuMech
         [Persistent(pass = (int)(Pass.Type | Pass.Global))]
         public double desiredInclination = 0.0;
         [Persistent(pass = (int)(Pass.Type | Pass.Global))]
+        public double desiredLAN = 0.0;
+        [Persistent(pass = (int)(Pass.Type | Pass.Global))]
         public bool autoThrottle = true;
         [Persistent(pass = (int)(Pass.Type | Pass.Global))]
         public bool correctiveSteering = false;
@@ -95,7 +97,6 @@ namespace MuMech
         [Persistent(pass = (int)(Pass.Type | Pass.Global))]
         public EditableDouble launchPhaseAngle = 0;
 
-        [Persistent(pass = (int)(Pass.Type))]
         public EditableDouble launchLANDifference = 0;
 
         [Persistent(pass = (int)(Pass.Global))]
@@ -585,16 +586,16 @@ namespace MuMech
                 core.attitude.AxisControl(!vessel.Landed, !vessel.Landed, !vessel.Landed && (vesselState.altitudeBottom > 50));
                 if ( desiredPitch == 90.0)
                 {
-                    core.attitude.attitudeTo(hdg, pitch, autopilot.verticalRoll, this, !vessel.Landed, !vessel.Landed, !vessel.Landed && (vesselState.altitudeBottom > 50));
+                    core.attitude.attitudeTo(hdg, pitch, autopilot.verticalRoll, this, !vessel.Landed, !vessel.Landed, !vessel.Landed && (vesselState.altitudeBottom > 50), true);
                 }
                 else
                 {
-                    core.attitude.attitudeTo(hdg, pitch, autopilot.turnRoll, this, !vessel.Landed, !vessel.Landed, !vessel.Landed && (vesselState.altitudeBottom > 50));
+                    core.attitude.attitudeTo(hdg, pitch, autopilot.turnRoll, this, !vessel.Landed, !vessel.Landed, !vessel.Landed && (vesselState.altitudeBottom > 50), true);
                 }
             }
             else
             {
-                core.attitude.attitudeTo(desiredThrustVector, AttitudeReference.INERTIAL, this);
+                core.attitude.attitudeTo(desiredThrustVector, AttitudeReference.INERTIAL_COT, this);
             }
         }
 

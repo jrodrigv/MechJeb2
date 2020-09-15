@@ -274,18 +274,17 @@ namespace MuMech
 
                     if (launchSiteName == null || lat == null || lon == null)
                     {
-                        print("Ignore langing site with null value");
+                        print("Ignore landing site with null value");
                         continue;
                     }
 
-                    double latitude, longitude;
-                    double.TryParse(lat, out latitude);
-                    double.TryParse(lon, out longitude);
+                    double.TryParse(lat, out double latitude);
+                    double.TryParse(lon, out double longitude);
 
                     string bodyName = site.GetValue("body");
                     CelestialBody body = bodyName != null ? FlightGlobals.Bodies.Find(b => b.bodyName == bodyName) : Planetarium.fetch.Home;
 
-                    if (!landingSites.Any(p => p.name == launchSiteName))
+                    if (landingSites.All(p => p.name != launchSiteName))
                     {
                         print("Adding " + launchSiteName);
                         landingSites.Add(new LandingSite()
@@ -298,7 +297,23 @@ namespace MuMech
                     }
                 }
             }
-            
+
+            // Import KSP launch sites
+            foreach (LaunchSite site in PSystemSetup.Instance.LaunchSites)
+            {
+                if (site.spawnPoints.Length > 0)
+                {
+                    LaunchSite.SpawnPoint point = site.spawnPoints[0];
+                    landingSites.Add(new LandingSite()
+                    {
+                        name = point.name.Replace("_", " "),
+                        latitude = point.latitude,
+                        longitude = point.longitude,
+                        body = site.Body
+                    });
+                }
+            }
+
             // Import KerbTown/Kerbal-Konstructs launch site
             foreach (var config in GameDatabase.Instance.GetConfigs("STATIC"))
             {
@@ -321,7 +336,7 @@ namespace MuMech
                     double latitude = Math.Asin(pos.y) * UtilMath.Rad2Deg;
                     double longitude = Math.Atan2(pos.z, pos.x) * UtilMath.Rad2Deg;
 
-                    if (body != null && !landingSites.Any(p => p.name == launchSiteName))
+                    if (body != null && landingSites.All(p => p.name != launchSiteName))
                     {
                         landingSites.Add(new LandingSite()
                         {
@@ -362,7 +377,7 @@ namespace MuMech
                         double.TryParse(lat, out latitude);
                         double.TryParse(lon, out longitude);
 
-                        if (!landingSites.Any(p => p.name == launchSiteName))
+                        if (landingSites.All(p => p.name != launchSiteName))
                         {
                             landingSites.Add(new LandingSite()
                             {

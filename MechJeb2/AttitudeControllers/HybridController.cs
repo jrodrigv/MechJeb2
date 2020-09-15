@@ -6,9 +6,6 @@ namespace MuMech.AttitudeControllers
 {
     class HybridController : BaseAttitudeController
     {
-        /* target = Quaternion.LookRotation(vessel.GetObtVelocity().normalized, vessel.up); */
-        //public Quaternion target { get; set; }
-
         [Persistent(pass = (int)Pass.Global)]
         private EditableDouble maxStoppingTime = new EditableDouble(2);
 
@@ -17,13 +14,6 @@ namespace MuMech.AttitudeControllers
 
         [Persistent(pass = (int) Pass.Global)]
         private bool useControlRange = true;
-        //public double RollControlRange {
-        //    get { return this.rollControlRange; }
-        //    set { this.rollControlRange.val = Math.Max(EPSILON, Math.Min(Math.PI, value)); }
-        //}
-
-        //[Persistent(pass = (int)Pass.Global)]
-        //public EditableDoubleMult kWlimit = new EditableDoubleMult(0.15, 0.01);
 
         public TorquePI pitchPI = new TorquePI();
         public TorquePI yawPI = new TorquePI();
@@ -60,11 +50,6 @@ namespace MuMech.AttitudeControllers
 
         public override void DrivePre(FlightCtrlState s, out Vector3d act, out Vector3d deltaEuler)
         {
-            //if (ac.vessel.ActionGroups[KSPActionGroup.SAS])
-            //{
-            //    /* SAS seems to be busted in 1.2.1? */
-            //    ac.vessel.ActionGroups.SetGroup(KSPActionGroup.SAS, false);
-            //}
             UpdatePredictionPI();
             UpdateControl(s);
 
@@ -72,89 +57,57 @@ namespace MuMech.AttitudeControllers
             act = Actuation;
         }
 
-        /* temporary state vectors */
-        private Quaternion vesselRotation;
-        private Vector3d vesselForward;
-        private Vector3d vesselTop;
-        private Vector3d vesselStarboard;
-        private Vector3d targetForward;
-        private Vector3d targetTop;
-        /* private Vector3d targetStarboard; */
-
-        private void UpdateStateVectors() {
-            /* FIXME: may get called more than once per tick */
-            vesselRotation = ac.vessel.ReferenceTransform.rotation * Quaternion.Euler(-90, 0, 0);
-            vesselForward = vesselRotation * Vector3d.forward;
-            vesselTop = vesselRotation * Vector3d.up;
-            vesselStarboard = vesselRotation * Vector3d.right;
-
-            targetForward = ac.RequestedAttitude * Vector3d.forward;
-            targetTop = ac.RequestedAttitude * Vector3d.up;
-            /* targetStarboard = target * Vector3d.right; */
-
-            Omega = -ac.vessel.angularVelocity;
-        }
-
-        public double PhiTotal() {
-            UpdateStateVectors();
-
-            double PhiTotal = Vector3d.Angle(vesselForward, targetForward) * Mathf.Deg2Rad;
-            if (Vector3d.Angle(vesselTop, targetForward) > 90)
-                PhiTotal *= -1;
-
-            return PhiTotal;
-        }
-
-
-        public Vector3d PhiVector()
+        public void UpdatePhi()
         {
             Transform vesselTransform = ac.vessel.ReferenceTransform;
 
-            // Find out the real shorter way to turn where we wan to.
-            // Thanks to HoneyFox
-            Vector3d tgtLocalUp = vesselTransform.transform.rotation.Inverse() * ac.RequestedAttitude * Vector3d.forward;
-            Vector3d curLocalUp = Vector3d.up;
+            // 1. The Euler(-90) here is because the unity transform puts "up" as the pointy end, which is wrong.  The rotation means that
+            // "forward" becomes the pointy end, and "up" and "right" correctly define e.g. AoA/pitch and AoS/yaw.  This is just KSP being KSP.
+            // 2. We then use the inverse ship rotation to transform the requested attitude into the ship frame.
+            Quaternion deltaRotation = Quaternion.Inverse(vesselTransform.transform.rotation * Quaternion.Euler(-90, 0, 0))  * ac.RequestedAttitude;
 
-            double turnAngle = Math.Abs(Vector3d.Angle(curLocalUp, tgtLocalUp));
-            Vector2d rotDirection = new Vector2d(tgtLocalUp.x, tgtLocalUp.z);
-            rotDirection = rotDirection.normalized * turnAngle;
+            // get us some euler angles for the target transform
+            Vector3d ea = deltaRotation.eulerAngles;
+            double pitch = ea[0] * UtilMath.Deg2Rad;
+            double yaw = ea[1] *UtilMath.Deg2Rad;
+            double roll = ea[2] *UtilMath.Deg2Rad;
 
-            // And the lowest roll
-            // Thanks to Crzyrndm
-            Vector3 normVec = Vector3.Cross(ac.RequestedAttitude * Vector3.forward, vesselTransform.up);
-            Quaternion targetDeRotated = Quaternion.AngleAxis((float)turnAngle, normVec) * ac.RequestedAttitude;
-            float rollError = Vector3.Angle(vesselTransform.right, targetDeRotated * Vector3.right) *
-                              Math.Sign(Vector3.Dot(targetDeRotated * Vector3.right, vesselTransform.forward));
+            // law of cosines for the "distance" of the miss in radians
+            phiTotal = Math.Acos( MuUtils.Clamp( Math.Cos(pitch)*Math.Cos(yaw), -1, 1 ) );
 
-            // From here everything should use MOI order for Vectors (pitch, roll, yaw)
+            // this is the initial direction of the great circle route of the requested transform
+            // (pitch is latitude, yaw is -longitude, and we are "navigating" from 0,0)
+            Vector3d temp = new Vector3d(Math.Sin(pitch), Math.Cos(pitch) * Math.Sin(-yaw), 0);
+            temp = temp.normalized * phiTotal;
 
-            Vector3d Phi = new Vector3d(
-                -rotDirection.y * UtilMath.Deg2Rad,
-                rollError * UtilMath.Deg2Rad,
-                rotDirection.x * UtilMath.Deg2Rad
-            );
+            // we assemble phi in the pitch, roll, yaw basis that vessel.MOI uses (right handed basis)
+            Vector3d phi = new Vector3d(
+                    MuUtils.ClampRadiansPi(temp[0]), // pitch distance around the geodesic
+                    MuUtils.ClampRadiansPi(roll),
+                    MuUtils.ClampRadiansPi(temp[1]) // yaw distance around the geodesic
+                    );
 
-            Phi.Scale(ac.AxisState);
+            phi.Scale(ac.AxisState);
 
             if (useInertia)
-                Phi += ac.inertia;
+                phi -= ac.inertia;
 
-            return Phi;
+            phiVector = phi;
         }
 
 
         private void UpdatePredictionPI() {
-            phiTotal = PhiTotal();
+            Omega = -ac.vessel.angularVelocity;
 
-            phiVector = PhiVector();
+            UpdatePhi();
 
             for(int i = 0; i < 3; i++) {
                 MaxOmega[i] = ControlTorque[i] * maxStoppingTime / ac.vesselState.MoI[i];
             }
 
-            TargetOmega[0] = pitchRatePI.Update(-phiVector[0], 0, MaxOmega[0]);
-            TargetOmega[1] = rollRatePI.Update(-phiVector[1], 0, MaxOmega[1]);
-            TargetOmega[2] = yawRatePI.Update(-phiVector[2], 0, MaxOmega[2]);
+            TargetOmega[0] = pitchRatePI.Update(phiVector[0], 0, MaxOmega[0]);
+            TargetOmega[1] = rollRatePI.Update(phiVector[1], 0, MaxOmega[1]);
+            TargetOmega[2] = yawRatePI.Update(phiVector[2], 0, MaxOmega[2]);
 
             if (useControlRange && Math.Abs(phiTotal) > rollControlRange) {
                 TargetOmega[1] = 0;
@@ -176,16 +129,13 @@ namespace MuMech.AttitudeControllers
             rollRatePI.ResetI();
         }
 
-
         private void UpdateControl(FlightCtrlState c) {
             /* TODO: static engine torque and/or differential throttle */
 
             for(int i = 0; i < 3; i++) {
-                double clamp = Math.Max(Math.Abs(Actuation[i]), 0.005) * 2;
                 Actuation[i] = TargetTorque[i] / ControlTorque[i];
                 if (Math.Abs(Actuation[i]) < EPSILON || double.IsNaN(Actuation[i]))
                     Actuation[i] = 0;
-                Actuation[i] = Math.Max(Math.Min(Actuation[i], clamp), -clamp);
             }
         }
 
@@ -223,6 +173,16 @@ namespace MuMech.AttitudeControllers
             GUILayout.BeginHorizontal();
             GUILayout.Label(Localizer.Format("#MechJeb_HybridController_label3"), GUILayout.ExpandWidth(true));//"phiVector"
             GUILayout.Label(MuUtils.PrettyPrint(phiVector), GUILayout.ExpandWidth(false));
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("Omega", GUILayout.ExpandWidth(true));
+            GUILayout.Label(MuUtils.PrettyPrint(Omega), GUILayout.ExpandWidth(false));
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("MaxOmega", GUILayout.ExpandWidth(true));
+            GUILayout.Label(MuUtils.PrettyPrint(MaxOmega), GUILayout.ExpandWidth(false));
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
