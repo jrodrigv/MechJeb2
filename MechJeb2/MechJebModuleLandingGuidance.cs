@@ -177,9 +177,23 @@ namespace MuMech
 
             FlightGlobals.currentMainBody.GetLatLonAlt(correctedWorldPos, out var correctedLatitude, out var correctedLongitude, out _);
 
-            Debug.Log("SetTargetAutomatedLanding: landing at {correctedLatitude} , {correctedLongitude} ");
+            Debug.Log($"SetTargetAutomatedLanding: landing at {correctedLatitude} , {correctedLongitude} ");
 
             core.target.SetPositionTarget(mainBody, correctedLatitude , correctedLongitude);
+        }
+
+
+        public void SetTargetAutomatedLandingNoError(float latitude, float longitude)
+        {
+            var worldPos = FlightGlobals.currentMainBody.GetWorldSurfacePosition(latitude, longitude, 0);
+
+            var correctedWorldPos = worldPos ;
+
+            FlightGlobals.currentMainBody.GetLatLonAlt(correctedWorldPos, out var correctedLatitude, out var correctedLongitude, out _);
+
+            Debug.Log($"SetTargetAutomatedLandingNoError: landing at {correctedLatitude} , {correctedLongitude} ");
+
+            core.target.SetPositionTarget(mainBody, correctedLatitude, correctedLongitude);
         }
 
         public void LandSomewhere()

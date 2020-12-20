@@ -88,7 +88,7 @@ namespace MuMech
 
                 double errorz = double.Parse(vesselNode.GetValue("errorZ"));
 
-
+                Debug.Log($"Getting Error {vesselName} returns {errorX},{errorY},{errorz}");
                 var newError = new LandingError
                 {
                     ErrorX = errorX,

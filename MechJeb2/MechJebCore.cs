@@ -174,6 +174,12 @@ namespace MuMech
             SetTargetAutomatedLanding();
         }
 
+        [KSPAction("No Error Set target Automated Landing")]
+        public void OnNoErrorSetTargetVesselNameAction(KSPActionParam param)
+        {
+            SetTargetAutomatedLandingNoError();
+        }
+
 
         private void LandTarget()
         {
@@ -200,7 +206,18 @@ namespace MuMech
             }
 
         }
+        private void SetTargetAutomatedLandingNoError()
+        {
+            MechJebCore masterMechJeb = vessel.GetMasterMechJeb();
 
+            if (masterMechJeb != null)
+            {
+                MechJebModuleLandingGuidance moduleLandingGuidance = GetComputerModule<MechJebModuleLandingGuidance>();
+
+                moduleLandingGuidance?.SetTargetAutomatedLandingNoError(LandingLatitude, LandingLongitude);
+            }
+
+        }
         private void LandSomewhere()
         {
             MechJebCore masterMechJeb = vessel.GetMasterMechJeb();
