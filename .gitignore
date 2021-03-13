@@ -123,5 +123,6 @@ UpgradeLog*.XML
 
 /MechJeb2/.vs/MechJeb2/v15/Server/sqlite3
 MechJeb2-Unity/Temp
+.idea/
 /MechJeb2/MechJeb2.csproj.DotSettings
 /MechJeb2/.vs/MechJeb2/v16/Server/sqlite3
